@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.route("/register").post(userValidator, validateRequest, register);
 router.route("/verify/:token").get(verifyEmail);
-router.route("/login").post(auth, login);
+router.route("/login").post(login);
 
 export default router;

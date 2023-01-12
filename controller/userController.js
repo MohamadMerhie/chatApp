@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
 const register = async (req, res) => {
   try {
     const newUser = req.body;
@@ -14,7 +14,7 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    sgMail.setApiKey(SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const token = jwt.sign(
       {
         email: createdUser.email,
@@ -37,7 +37,7 @@ const register = async (req, res) => {
     console.log("response von sendgrid", response);
     res.status(201).send(createdUser);
   } catch (error) {
-    res.status(401).send({ error});
+    res.status(401).send({ error });
   }
 };
 const verifyEmail = async (req, res) => {
@@ -89,6 +89,7 @@ const login = async (req, res, next) => {
       .send({
         auth: "eingeloggt",
         userName: findUser.firstName,
+        id: findUser._id,
       });
   } catch (err) {
     next(err);

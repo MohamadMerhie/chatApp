@@ -6,7 +6,8 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import userRouter from "./routes/userRouter.js";
-
+import messageRoute from "./routes/messageRoute.js";
+import chatRoute from "./routes/chatRoute.js";
 const MONGO_DB = process.env.MONGO_DB || "mongodb://localhost:27017";
 const PORT = process.env.PORT || 4001;
 
@@ -19,14 +20,18 @@ mongoose
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-    origin: 'http://localhost:3000',
+app.use(
+  cors({
+    origin: "http://localhost:3000",
     credentials: true,
-  }));
+  })
+);
 app.use(morgan("dev"));
 app.use(cookieParser());
 
 app.use("/users", userRouter);
+app.use("/chat", chatRoute);
+app.use("/message", messageRoute);
 
 app.listen(PORT, () => {
   console.log("Listening on Port: " + PORT);
