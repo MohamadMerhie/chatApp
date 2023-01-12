@@ -1,0 +1,33 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
+import userRouter from "./routes/userRouter.js";
+
+const MONGO_DB = process.env.MONGO_DB || "mongodb://localhost:27017";
+const PORT = process.env.PORT || 4001;
+
+mongoose
+  .connect(MONGO_DB)
+  .then(() => console.log("connecting with MongoDB..", MONGO_DB))
+  .catch((error) => console.log("Connection with MongoDB FAILED..", error));
+
+// mongoose.connection.on("error", console.log);
+
+const app = express();
+app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  }));
+app.use(morgan("dev"));
+app.use(cookieParser());
+
+app.use("/users", userRouter);
+
+app.listen(PORT, () => {
+  console.log("Listening on Port: " + PORT);
+});
