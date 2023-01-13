@@ -4,7 +4,7 @@ const addMessage = async (req, res) => {
   try {
     const response = await MessageModel.create({
       chatId: req.body.chatId,
-      senderId: req.body.senderId,
+      senderId: req.user._id,
       text: req.body.text,
     });
     res.status(201).json(response);
