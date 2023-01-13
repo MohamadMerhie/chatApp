@@ -11,9 +11,9 @@ const auth = async (req, res, next) => {
     console.log({ tokenDecoded });
     req.user = await User.findById(tokenDecoded.userId).select("-password");
     // const { userName } = tokenDecoded;
-    res.send({
-      message: "Inhalt nur für eingeloggten User",
-    });
+    // res.send({
+    //   message: "Inhalt nur für eingeloggten User",
+    // });
 
     next();
   } catch (err) {
