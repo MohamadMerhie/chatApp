@@ -3,7 +3,7 @@ import ChatModel from "../models/chatModel.js";
 const createChat = async (req, res) => {
   try {
     const response = await ChatModel.create({
-      members: [req.body.members.senderId, req.body.members.receiverId],
+      members: [req.params.senderId, req.params.receiverId],
     });
     res.status(201).json(response);
   } catch (error) {
