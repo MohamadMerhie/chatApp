@@ -77,7 +77,7 @@ const login = async (req, res, next) => {
         email: findUser.email,
         userId: findUser._id,
       },
-      process.env.JWT || "Geheimnis",
+      process.env.SECRET_JWT || "thisisoursecretjsonwebtoken",
       { expiresIn: "1d" }
     );
     const einTag = 1000 * 60 * 60 * 24;
@@ -90,6 +90,7 @@ const login = async (req, res, next) => {
         auth: "eingeloggt",
         userName: findUser.firstName,
         id: findUser._id,
+        token: token,
       });
   } catch (err) {
     next(err);
