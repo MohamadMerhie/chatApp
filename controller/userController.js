@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
+// controller für zurücksetzen des passwortes
 
 const register = async (req, res) => {
   try {
@@ -96,5 +97,51 @@ const login = async (req, res, next) => {
     next(err);
   }
 };
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const findUser = await User.find({ email });
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const token = jwt.sign(
+      {
+        email: email,
+        _id: findUser._id,
+      },
+      process.env.SECRET_JWT,
+      {
+        expiresIn: "1h",
+      }
+    );
+    console.log(token);
+    const msg = {
+      to: email, // Change to your recipient
+      from: "amnaelsayed2@gmail.com", // Change to your verified sender
+      subject: "Reset password",
+      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/${token} `,
+      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Reset Password</a></p>`,
+    };
+    const response = await sgMail.send(msg);
+    console.log("response von sendgrid", response);
+    await User.findByIdAndUpdate(id, { isVerified: false }, { new: true });
+    res.status(201).send(findUser);
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+const updatePassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const updatedUser = User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword },
+      { new: true }
+    );
+    res.status(200).send(updatedUser);
+  } catch (err) {
+    next(err);
+  }
+};
 
-export { register, verifyEmail, login };
+export { register, verifyEmail, login, resetPassword, updatePassword };
