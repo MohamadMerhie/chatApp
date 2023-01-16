@@ -4,11 +4,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
-<<<<<<< HEAD
-=======
+
 // controller für zurücksetzen des passwortes
 
->>>>>>> d84207efc8bc45eef7af19a5679b0b65b33483b5
 const register = async (req, res) => {
   try {
     const newUser = req.body;
@@ -114,12 +112,7 @@ const login = async (req, res, next) => {
     next(err);
   }
 };
-const resetPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const findUser = await User.find({ email });
 
-<<<<<<< HEAD
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -152,7 +145,7 @@ const searchForNewChat = async (req, res) => {
 const getChats = async (req, res) => {
   try {
     const users = await User.find({ _id: req.params.id });
-// console.log(users);
+    // console.log(users);
     if (!users) {
       const error = new Error("no users found");
       error.statusCode = 401;
@@ -164,9 +157,10 @@ const getChats = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-
-export { register, verifyEmail, login, getUsers, searchForNewChat, getChats };
-=======
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const findUser = await User.find({ email });
     const id = findUser[0]._id.toHexString();
     console.log(id);
     await User.findByIdAndUpdate(
@@ -241,4 +235,3 @@ export {
   updatePassword,
   updateUser,
 };
->>>>>>> d84207efc8bc45eef7af19a5679b0b65b33483b5

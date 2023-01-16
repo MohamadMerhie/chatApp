@@ -3,15 +3,12 @@ import {
   login,
   register,
   verifyEmail,
-<<<<<<< HEAD
   getChats,
   getUsers,
   searchForNewChat,
-=======
   resetPassword,
   updatePassword,
   updateUser,
->>>>>>> d84207efc8bc45eef7af19a5679b0b65b33483b5
 } from "../controller/userController.js";
 import auth from "../middlewares/auth.js";
 // import validators
