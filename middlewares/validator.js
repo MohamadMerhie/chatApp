@@ -51,3 +51,8 @@ export const userUpdateValidator = [
     .withMessage("First name contains illegal characters ")
     .trim(),
 ];
+
+export const createChatValidator = [
+  body("members").notEmpty().withMessage("indicate a member").trim(),
+  body("chatName").notEmpty().withMessage("indicate a chatName").trim(),
+];

@@ -16,8 +16,6 @@ mongoose
   .then(() => console.log("connecting with MongoDB..", MONGO_DB))
   .catch((error) => console.log("Connection with MongoDB FAILED..", error));
 
-// mongoose.connection.on("error", console.log);
-
 const app = express();
 app.use(express.json());
 app.use(
@@ -30,8 +28,8 @@ app.use(morgan("dev"));
 app.use(cookieParser());
 
 app.use("/users", userRouter);
-app.use("/chat", chatRoute);
-app.use("/message", messageRoute);
+app.use("/chats", chatRoute);
+app.use("/messages", messageRoute);
 
 app.listen(PORT, () => {
   console.log("Listening on Port: " + PORT);

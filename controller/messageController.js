@@ -9,14 +9,14 @@ const addMessage = async (req, res) => {
     });
     res.status(201).json(response);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({error: error.message});
   }
 };
 
 const getMessages = async (req, res) => {
-  const chatId = req.params.chatId;
+
   try {
-    const response = await MessageModel.find({ chatId });
+    const response = await MessageModel.find({ chatId: req.params.chatId });
     res.status(201).json(response);
   } catch (error) {
     res.status(500).json(error);

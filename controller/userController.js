@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
-
 const register = async (req, res) => {
   try {
     const newUser = req.body;
@@ -14,30 +13,42 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    const token = jwt.sign(
-      {
-        email: createdUser.email,
-        _id: createdUser._id,
-      },
-      process.env.SECRET_JWT,
-      {
-        expiresIn: "1h",
-      }
-    );
-    console.log(token);
-    const msg = {
-      to: createdUser.email, // Change to your recipient
-      from: "amnaelsayed2@gmail.com", // Change to your verified sender
-      subject: "Email verification",
-      text: `Zur Verifizierung der email bitte zu folgender email gehen:http://localhost:${process.env.PORT}/users/verify/${token} `,
-      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Verifiziere deine Email</a></p>`,
-    };
-    const response = await sgMail.send(msg);
-    console.log("response von sendgrid", response);
-    res.status(201).send(createdUser);
+    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    // const token = jwt.sign(
+    //   {
+    //     email: createdUser.email,
+    //     _id: createdUser._id,
+    //   },
+    //   process.env.SECRET_JWT,
+    //   {
+    //     expiresIn: "1h",
+    //   }
+    // );
+    // console.log(token);
+    // const msg = {
+    //   to: createdUser.email, // Change to your recipient
+    //   from: "amnaelsayed2@gmail.com", // Change to your verified sender
+    //   subject: "Email verification",
+    //   text: `Zur Verifizierung der email bitte zu folgender email gehen:http://localhost:${process.env.PORT}/users/verify/${token} `,
+    //   html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Verifiziere deine Email</a></p>`,
+    // };
+
+    // const token = jwt.sign(
+    //   {
+    //     email: createdUser.email,
+    //     _id: createdUser._id,
+    //   },
+    //   process.env.SECRET_JWT,
+    //   {
+    //     expiresIn: "1h",
+    //   }
+    // );
+    // const response = await sgMail.send(msg);
+
+    console.log("response von sendgrid", createdUser);
+    res.status(201).json(createdUser);
   } catch (error) {
-    res.status(401).send({ error });
+    res.status(401).send({ error: error });
   }
 };
 const verifyEmail = async (req, res) => {
@@ -58,6 +69,7 @@ const verifyEmail = async (req, res) => {
 const login = async (req, res, next) => {
   try {
     const userInput = req.body;
+    console.log(userInput);
     const findUser = await User.findOne({ email: userInput.email });
     if (!findUser) {
       const error = new Error("Kein User vorhanden");
@@ -77,7 +89,7 @@ const login = async (req, res, next) => {
         email: findUser.email,
         userId: findUser._id,
       },
-      process.env.JWT || "Geheimnis",
+      process.env.SECRET_JWT || "thisisoursecretjsonwebtoken",
       { expiresIn: "1d" }
     );
     const einTag = 1000 * 60 * 60 * 24;
@@ -87,13 +99,60 @@ const login = async (req, res, next) => {
         httpOnly: true,
       })
       .send({
-        auth: "eingeloggt",
-        userName: findUser.firstName,
-        id: findUser._id,
+        auth: "loggedIn",
+        firstName: findUser.firstName,
+        lastName: findUser.lastName,
+        _id: findUser._id,
+        token: token,
       });
   } catch (err) {
     next(err);
   }
 };
 
-export { register, verifyEmail, login };
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users) {
+      const error = new Error("no users found");
+      error.statusCode = 401;
+      throw error;
+    }
+    // console.log(users);
+    res.status(200).send(users);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+const searchForNewChat = async (req, res) => {
+  const regex = new RegExp(req.params.name, "i");
+
+  try {
+    const response = await User.find().or([
+      { firstName: regex },
+      { lastName: regex },
+    ]);
+
+    res.status(201).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+const getChats = async (req, res) => {
+  try {
+    const users = await User.find({ _id: req.params.id });
+// console.log(users);
+    if (!users) {
+      const error = new Error("no users found");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    res.status(200).send(users);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+export { register, verifyEmail, login, getUsers, searchForNewChat, getChats };
