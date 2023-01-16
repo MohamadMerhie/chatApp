@@ -4,11 +4,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
-<<<<<<< HEAD
-=======
-// controller für zurücksetzen des passwortes
-
->>>>>>> d84207efc8bc45eef7af19a5679b0b65b33483b5
 const register = async (req, res) => {
   try {
     const newUser = req.body;
@@ -114,12 +109,11 @@ const login = async (req, res, next) => {
     next(err);
   }
 };
-const resetPassword = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const findUser = await User.find({ email });
+// const resetPassword = async (req, res, next) => {
+//   try {
+//     const { email } = req.body;
+//     const findUser = await User.find({ email });
 
-<<<<<<< HEAD
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -165,80 +159,4 @@ const getChats = async (req, res) => {
   }
 };
 
-export { register, verifyEmail, login, getUsers, searchForNewChat, getChats };
-=======
-    const id = findUser[0]._id.toHexString();
-    console.log(id);
-    await User.findByIdAndUpdate(
-      id,
-      { ...findUser, isVerified: false },
-      { new: true }
-    );
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    const token = jwt.sign(
-      {
-        email: email,
-        _id: id,
-      },
-      process.env.SECRET_JWT,
-      {
-        expiresIn: "1h",
-      }
-    );
-    console.log(token);
-    const msg = {
-      to: email, // Change to your recipient
-      from: "amnaelsayed2@gmail.com", // Change to your verified sender
-      subject: "Reset password",
-      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/${token} `,
-      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Reset Password</a></p>`,
-    };
-    const response = await sgMail.send(msg);
-    console.log("response von sendgrid", response);
-
-    res.status(201).send(findUser);
-    next();
-  } catch (err) {
-    next(err);
-  }
-};
-const updatePassword = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    console.log(email);
-    console.log(password);
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const updatedUser = await User.findOneAndUpdate(
-      { email: email },
-      { password: hashedPassword },
-      { new: true }
-    );
-    res.status(200).send(updatedUser);
-  } catch (err) {
-    next(err);
-  }
-};
-
-const updateUser = async (req, res, next) => {
-  try {
-    const id = req.user._id;
-    const newUser = req.body;
-    const updateUser = await User.findByIdAndUpdate(id, newUser, { new: true });
-
-    res.status(200).json(updateUser);
-  } catch (error) {
-    error.message = `Ein User mit der id wurde nicht gefunden! ${error.message}`;
-    error.statusCode = 404;
-    next(error);
-  }
-};
-
-export {
-  register,
-  verifyEmail,
-  login,
-  resetPassword,
-  updatePassword,
-  updateUser,
-};
->>>>>>> d84207efc8bc45eef7af19a5679b0b65b33483b5
+export { register, verifyEmail, login, getUsers, searchForNewChat, getChats }
