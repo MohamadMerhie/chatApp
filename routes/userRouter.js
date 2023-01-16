@@ -15,7 +15,7 @@ const router = express.Router();
 router.route("/register").post(userValidator, validateRequest, register);
 router.route("/verify/:token").get(verifyEmail);
 router.route("/login").post(login);
-router.route("/update").put(updateUser);
+router.route("/update").put(auth, updateUser);
 router.route("/resetPassword").post(resetPassword);
 router.route("/updatePassword").patch(updatePassword);
 
