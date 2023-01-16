@@ -1,34 +1,37 @@
 import ChatModel from "../models/chatModel.js";
 
 // const createChat = async (req, res) => {
+//   console.log(req.body);
 //   try {
-//     const response = await ChatModel.create({
-//       members: [req.body.members.senderId, req.body.members.receiverId],
+
+
+//     const chatExists = await ChatModel.find({
+//       members: {
+//         $all: [
+//           { senderId: req.body.receiverId },
+//           { receiverId: req.body.receiverId },
+//         ],
+//       },
 //     });
-//     res.status(201).json(response);
+//     console.log(chatExists);
+//     if (await chatExists) {
+//       console.log("chatExists");
+//       const error = new Error("chatExists");
+//       error.statusCode = 404;
+//       throw error;
+//     } else {
+//       const response = await ChatModel.create(req.body);
+//       res.status(201).json(response);
+//     }
 //   } catch (error) {
-//     res.status(500).json(error);
+//     res.status(500).json({ error: error.message });
+//     console.log("chatExists");
 //   }
 // };
 const createChat = async (req, res) => {
   try {
-    const receiverId = req.body.members;
-    const chatExists = await ChatModel.findOne({
-      members: { $all: [req.user._id, receiverId] },
-    });
-    console.log(chatExists);
-    if (await chatExists) {
-      console.log("chatExists");
-      res.json(chatExists);
-    } else {
-      const chatObject = {
-        members: [req.user._id, receiverId],
-        chatName: req.body.chatName,
-      };
-      let response = await ChatModel.create(chatObject);
-      await response.populate("members", "-password");
-      res.status(201).json(response);
-    }
+    const response = await ChatModel.create(req.body);
+    res.status(201).json(response);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -36,12 +39,15 @@ const createChat = async (req, res) => {
 
 const userChats = async (req, res) => {
   try {
+    console.log(req.params.id);
     const response = await ChatModel.find({
-      members: { $in: [req.user._id] },
+      members: { $in: [req.params.id] },
     });
+
+    // console.log(response);
     res.status(201).json(response);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -50,7 +56,10 @@ const findChat = async (req, res) => {
     const response = await ChatModel.findOne({
       members: { $all: [req.params.senderId, req.params.receiverId] },
     });
-    res.status(201).json(response);
+    if (!response.ok) {
+      
+      res.status(201).send(response);
+    }
   } catch (error) {
     res.status(500).json(error);
   }

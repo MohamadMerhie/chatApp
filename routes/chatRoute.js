@@ -12,8 +12,8 @@ import auth from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.route("/").post(auth, createChatValidator, validateRequest, createChat);
-router.route("/:senderId").get(auth, userChats);
+router.route("/").post(createChat);
+router.route("/:id").get(userChats);
 router.route("/find/:senderId/:receiverId").get(findChat);
 
 export default router;

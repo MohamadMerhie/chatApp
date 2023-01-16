@@ -3,7 +3,7 @@ import { addMessage, getMessages } from "../controller/messageController.js";
 import auth from "../middlewares/auth.js";
 const router = express.Router();
 
-router.route("/").post(auth, addMessage);
+router.route("/").post(addMessage);
 router.route("/:chatId").get(getMessages);
 
 export default router;

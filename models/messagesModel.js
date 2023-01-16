@@ -1,10 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
 
-// const MessageSchema = new Schema({
-//   chatId: { type: String },
-//   senderId: { type: String },
-//   text: { type: String },
-// });
 const MessageSchema = new Schema(
   {
     chatId: {
@@ -19,5 +14,5 @@ const MessageSchema = new Schema(
   },
   { timestamps: true }
 );
-const MessageModel = model("Message", MessageSchema);
+const MessageModel = model("Message", MessageSchema, "messages");
 export default MessageModel;
