@@ -101,7 +101,7 @@ const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const findUser = await User.find({ email });
-    console.log(findUser[0]._id.str);
+
     const id = findUser[0]._id.toHexString();
     console.log(id);
     await User.findByIdAndUpdate(
@@ -154,4 +154,25 @@ const updatePassword = async (req, res, next) => {
   }
 };
 
-export { register, verifyEmail, login, resetPassword, updatePassword };
+const updateUser = async (req, res, next) => {
+  try {
+    const id = req.user._id;
+    const newUser = req.body;
+    const updateUser = await User.findByIdAndUpdate(id, newUser, { new: true });
+
+    res.status(200).json(updateUser);
+  } catch (error) {
+    error.message = `Ein User mit der id wurde nicht gefunden! ${error.message}`;
+    error.statusCode = 404;
+    next(error);
+  }
+};
+
+export {
+  register,
+  verifyEmail,
+  login,
+  resetPassword,
+  updatePassword,
+  updateUser,
+};
