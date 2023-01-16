@@ -15,6 +15,6 @@ router.route("/register").post(userValidator, validateRequest, register);
 router.route("/verify/:token").get(verifyEmail);
 router.route("/login").post(login);
 router.route("/resetPassword").post(resetPassword);
-router.route("/updatePassword").post(updatePassword);
+router.route("/updatePassword").patch(updatePassword);
 
 export default router;

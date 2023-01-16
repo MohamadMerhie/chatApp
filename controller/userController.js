@@ -101,11 +101,19 @@ const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const findUser = await User.find({ email });
+    console.log(findUser[0]._id.str);
+    const id = findUser[0]._id.toHexString();
+    console.log(id);
+    await User.findByIdAndUpdate(
+      id,
+      { ...findUser, isVerified: false },
+      { new: true }
+    );
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const token = jwt.sign(
       {
         email: email,
-        _id: findUser._id,
+        _id: id,
       },
       process.env.SECRET_JWT,
       {
@@ -122,19 +130,21 @@ const resetPassword = async (req, res, next) => {
     };
     const response = await sgMail.send(msg);
     console.log("response von sendgrid", response);
-    await User.findByIdAndUpdate(id, { isVerified: false }, { new: true });
+
     res.status(201).send(findUser);
     next();
   } catch (err) {
     next(err);
   }
 };
-const updatePassword = async (req, res) => {
+const updatePassword = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log(email);
+    console.log(password);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const updatedUser = User.findOneAndUpdate(
-      { email },
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
       { password: hashedPassword },
       { new: true }
     );
