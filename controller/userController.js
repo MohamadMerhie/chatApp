@@ -86,7 +86,7 @@ const verifyPassword = async (req, res) => {
     await User.findByIdAndUpdate(id, {
       isVerified: true,
     });
-    res.redirect("http://localhost:3000/users/setPassword");
+    return res.redirect("http://localhost:3000/users/setPassword");
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: error.message });
@@ -186,9 +186,13 @@ const getChats = async (req, res) => {
 const resetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const findUser = await User.find({ email });
-    const id = findUser[0]._id.toHexString();
-    console.log(id);
+    console.log("test");
+    const findUser = await User.findOne({ email: email });
+    console.log(findUser);
+    console.log(findUser._id);
+    // console.log(id);
+    const id = findUser._id.toHexString();
+
     await User.findByIdAndUpdate(
       id,
       { ...findUser, isVerified: false },
@@ -210,8 +214,8 @@ const resetPassword = async (req, res, next) => {
       to: email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
       subject: "Reset password",
-      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/${token} `,
-      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Reset Password</a></p>`,
+      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/password/${token} `,
+      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/password/${token}">Reset Password</a></p>`,
     };
     const response = await sgMail.send(msg);
     const einTag = 1000 * 60 * 60 * 24;
@@ -228,7 +232,7 @@ const resetPassword = async (req, res, next) => {
         token: token,
         email: findUser.email,
       });
-    
+
     next();
   } catch (err) {
     next(err);
@@ -238,7 +242,7 @@ const updatePassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const { password } = req.body;
-   
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const updatedUser = await User.findOneAndUpdate(
       { email: email },
@@ -296,5 +300,5 @@ export {
   getUsers,
   searchForNewChat,
   logout,
-  verifyPassword
+  verifyPassword,
 };

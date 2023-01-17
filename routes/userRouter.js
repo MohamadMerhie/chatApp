@@ -10,7 +10,7 @@ import {
   updatePassword,
   updateUser,
   logout,
-  verifyPassword
+  verifyPassword,
 } from "../controller/userController.js";
 import auth from "../middlewares/auth.js";
 import authReset from "../middlewares/authReset.js";
@@ -27,8 +27,7 @@ router.route("/verify/:token").get(verifyEmail);
 router.route("/verify/password/:token").get(verifyPassword);
 router.route("/login").post(login);
 router.route("/update").put(auth, updateUser);
-router.route("/resetPassword").post(auth, resetPassword);
-router.route("/updatePassword").patch(auth, updatePassword);
+router.route("/resetPassword").post(resetPassword);
 router.route("/logout").post(auth, logout);
 router.route("/updatePassword").put(authReset, updatePassword);
 
