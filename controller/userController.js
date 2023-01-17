@@ -77,6 +77,21 @@ const verifyEmail = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+const verifyPassword = async (req, res) => {
+  try {
+    const token = req.params.token;
+    const decodedToken = jwt.verify(token, process.env.SECRET_JWT);
+    console.log(decodedToken);
+    const id = decodedToken._id;
+    await User.findByIdAndUpdate(id, {
+      isVerified: true,
+    });
+    res.redirect("http://localhost:3000/users/setPassword");
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: error.message });
+  }
+};
 const login = async (req, res, next) => {
   try {
     const userInput = req.body;
@@ -199,9 +214,21 @@ const resetPassword = async (req, res, next) => {
       html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Reset Password</a></p>`,
     };
     const response = await sgMail.send(msg);
-    console.log("response von sendgrid", response);
-
-    res.status(201).send(findUser);
+    const einTag = 1000 * 60 * 60 * 24;
+    res
+      .cookie("resetCookie", token, {
+        maxAge: einTag,
+        httpOnly: true,
+      })
+      .send({
+        auth: "loggedIn",
+        firstName: findUser.firstName,
+        lastName: findUser.lastName,
+        _id: findUser._id,
+        token: token,
+        email: findUser.email,
+      });
+    
     next();
   } catch (err) {
     next(err);
@@ -209,10 +236,9 @@ const resetPassword = async (req, res, next) => {
 };
 const updatePassword = async (req, res, next) => {
   try {
+    const { email } = req.body;
     const { password } = req.body;
-    // const email = findUser.email
-    console.log(email);
-    console.log(password);
+   
     const hashedPassword = await bcrypt.hash(password, 10);
     const updatedUser = await User.findOneAndUpdate(
       { email: email },
@@ -270,4 +296,5 @@ export {
   getUsers,
   searchForNewChat,
   logout,
+  verifyPassword
 };
