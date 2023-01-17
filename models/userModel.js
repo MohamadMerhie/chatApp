@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 
 const userSchema = new Schema(
   {
-    
     firstName: {
       type: String,
       required: true,
@@ -22,6 +21,7 @@ const userSchema = new Schema(
     },
     isAdmin: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
+    isOnline: { type: Boolean, default: false },
   },
   {
     toObject: { virtuals: true },

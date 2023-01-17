@@ -4,9 +4,20 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
+
+// controller für zurücksetzen des passwortes
+
 const register = async (req, res) => {
   try {
     const newUser = req.body;
+    console.log(newUser);
+    const findExists = await User.findOne({ email: newUser.email });
+    console.log(findExists);
+    if (findExists) {
+      const error = new Error("Duplicated Email");
+      error.statusCode = 401;
+      throw error;
+    }
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
     const createdUser = await User.create({
       ...newUser,
@@ -48,7 +59,7 @@ const register = async (req, res) => {
     console.log("response von sendgrid", createdUser);
     res.status(201).json(createdUser);
   } catch (error) {
-    res.status(401).send({ error: error });
+    res.status(401).send({ error: error.message });
   }
 };
 const verifyEmail = async (req, res) => {
@@ -69,21 +80,25 @@ const verifyEmail = async (req, res) => {
 const login = async (req, res, next) => {
   try {
     const userInput = req.body;
-    console.log(userInput);
     const findUser = await User.findOne({ email: userInput.email });
     if (!findUser) {
-      const error = new Error("Kein User vorhanden");
+      const error = new Error("No user found");
       error.statusCode = 401;
       throw error;
     }
+    const setToOnline = await User.findByIdAndUpdate(findUser._id, {
+      isOnline: true,
+    });
+
     const pass = userInput.password;
-    const vergleich = await bcrypt.compare(pass, findUser.password);
-    // res.send(vergleich);
+
+    const vergleich = await bcrypt.compare(pass, setToOnline.password);
     if (!vergleich) {
-      const error = new Error("passwort falsch");
+      const error = new Error("password wrong error");
       error.statusCode = 401;
       throw error;
     }
+
     const token = jwt.sign(
       {
         email: findUser.email,
@@ -100,8 +115,7 @@ const login = async (req, res, next) => {
       })
       .send({
         auth: "loggedIn",
-        firstName: findUser.firstName,
-        lastName: findUser.lastName,
+        fullName: findUser.fullName,
         _id: findUser._id,
         token: token,
       });
@@ -109,10 +123,6 @@ const login = async (req, res, next) => {
     next(err);
   }
 };
-// const resetPassword = async (req, res, next) => {
-//   try {
-//     const { email } = req.body;
-//     const findUser = await User.find({ email });
 
 const getUsers = async (req, res) => {
   try {
@@ -146,7 +156,7 @@ const searchForNewChat = async (req, res) => {
 const getChats = async (req, res) => {
   try {
     const users = await User.find({ _id: req.params.id });
-// console.log(users);
+    // console.log(users);
     if (!users) {
       const error = new Error("no users found");
       error.statusCode = 401;
@@ -158,5 +168,106 @@ const getChats = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const findUser = await User.find({ email });
+    const id = findUser[0]._id.toHexString();
+    console.log(id);
+    await User.findByIdAndUpdate(
+      id,
+      { ...findUser, isVerified: false },
+      { new: true }
+    );
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const token = jwt.sign(
+      {
+        email: email,
+        _id: id,
+      },
+      process.env.SECRET_JWT,
+      {
+        expiresIn: "1h",
+      }
+    );
+    console.log(token);
+    const msg = {
+      to: email, // Change to your recipient
+      from: "amnaelsayed2@gmail.com", // Change to your verified sender
+      subject: "Reset password",
+      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/${token} `,
+      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Reset Password</a></p>`,
+    };
+    const response = await sgMail.send(msg);
+    console.log("response von sendgrid", response);
 
-export { register, verifyEmail, login, getUsers, searchForNewChat, getChats }
+    res.status(201).send(findUser);
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+const updatePassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    // const email = findUser.email
+    console.log(email);
+    console.log(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      { password: hashedPassword },
+      { new: true }
+    );
+    res.status(200).send(updatedUser);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    const id = req.user._id;
+    const newUser = req.body;
+    const updateUser = await User.findByIdAndUpdate(id, newUser, { new: true });
+
+    res.status(200).json(updateUser);
+  } catch (error) {
+    error.message = `Ein User mit der id wurde nicht gefunden! ${error.message}`;
+    error.statusCode = 404;
+    next(error);
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    const id = req.body.id;
+    const updateUser = await User.findByIdAndUpdate(
+      id,
+      {
+        isOnline: false,
+      },
+      { new: true }
+    );
+
+    res.clearCookie("loginCookie");
+
+    res.send({ msg: "logging you out" });
+  } catch (error) {
+    console.log({ error: error.message });
+    res.json({ msg: "no user to log out!" });
+  }
+};
+
+export {
+  register,
+  verifyEmail,
+  login,
+  resetPassword,
+  updatePassword,
+  updateUser,
+  getChats,
+  getUsers,
+  searchForNewChat,
+  logout,
+};
