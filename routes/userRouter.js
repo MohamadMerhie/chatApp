@@ -33,5 +33,6 @@ router
   .put(verifyPassword, authReset, updatePassword);
 router.route("/resetPassword").post(resetPassword);
 router.route("/logout").post(auth, logout);
+router.route("/updatePassword").put(authReset, updatePassword);
 
 export default router;
