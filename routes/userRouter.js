@@ -30,6 +30,5 @@ router.route("/update").put(auth, updateUser);
 router.route("/resetPassword").post(auth, resetPassword);
 router.route("/updatePassword").patch(auth, updatePassword);
 router.route("/logout").post(auth, logout);
-router.route("/updatePassword").put(authReset, updatePassword);
 
 export default router;
