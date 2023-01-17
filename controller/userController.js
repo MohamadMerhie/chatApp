@@ -77,21 +77,6 @@ const verifyEmail = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-const verifyPassword = async (req, res) => {
-  try {
-    const token = req.params.token;
-    const decodedToken = jwt.verify(token, process.env.SECRET_JWT);
-    console.log(decodedToken);
-    const id = decodedToken._id;
-    await User.findByIdAndUpdate(id, {
-      isVerified: true,
-    });
-    return res.redirect("http://localhost:3000/users/setPassword");
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ message: error.message });
-  }
-};
 const login = async (req, res, next) => {
   try {
     const userInput = req.body;
@@ -134,6 +119,7 @@ const login = async (req, res, next) => {
         _id: findUser._id,
         token: token,
       });
+      console.log(response.ok);
   } catch (err) {
     next(err);
   }
@@ -183,7 +169,7 @@ const getChats = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-const resetPassword = async (req, res, next) => {
+const resetPassword = async (req, res) => {
   try {
     const { email } = req.body;
     console.log("test");
@@ -214,10 +200,11 @@ const resetPassword = async (req, res, next) => {
       to: email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
       subject: "Reset password",
-      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/verify/password/${token} `,
-      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/password/${token}">Reset Password</a></p>`,
+      text: `To reset you password please follow the link:http://localhost:${process.env.PORT}/users/updatePassword/${token} `,
+      html: `<p><a href="http://localhost:${process.env.PORT}/users/updatePassword/${token}">Reset Password</a></p>`,
     };
     const response = await sgMail.send(msg);
+    console.log(response);
     const einTag = 1000 * 60 * 60 * 24;
     res
       .cookie("resetCookie", token, {
@@ -231,11 +218,11 @@ const resetPassword = async (req, res, next) => {
         _id: findUser._id,
         token: token,
         email: findUser.email,
+        isVerified: findUser.isVerified,
       });
-
-    next();
+      console.log(einTag);
   } catch (err) {
-    next(err);
+    console.log(err);
   }
 };
 const updatePassword = async (req, res, next) => {
@@ -299,6 +286,5 @@ export {
   getChats,
   getUsers,
   searchForNewChat,
-  logout,
-  verifyPassword,
+  logout
 };

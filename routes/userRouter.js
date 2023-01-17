@@ -10,10 +10,11 @@ import {
   updatePassword,
   updateUser,
   logout,
-  verifyPassword,
+  // verifyPassword,
 } from "../controller/userController.js";
 import auth from "../middlewares/auth.js";
 import authReset from "../middlewares/authReset.js";
+import verifyPassword from "../middlewares/verifyPassword.js";
 // import validators
 import { validateRequest, userValidator } from "../middlewares/validator.js";
 const router = express.Router();
@@ -27,6 +28,9 @@ router.route("/verify/:token").get(verifyEmail);
 router.route("/verify/password/:token").get(verifyPassword);
 router.route("/login").post(login);
 router.route("/update").put(auth, updateUser);
+router
+  .route("/updatePassword/:token")
+  .put(verifyPassword, authReset, updatePassword);
 router.route("/resetPassword").post(resetPassword);
 router.route("/logout").post(auth, logout);
 
