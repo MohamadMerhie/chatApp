@@ -24,25 +24,25 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    // const token = jwt.sign(
-    //   {
-    //     email: createdUser.email,
-    //     _id: createdUser._id,
-    //   },
-    //   process.env.SECRET_JWT,
-    //   {
-    //     expiresIn: "1h",
-    //   }
-    // );
-    // console.log(token);
-    // const msg = {
-    //   to: createdUser.email, // Change to your recipient
-    //   from: "amnaelsayed2@gmail.com", // Change to your verified sender
-    //   subject: "Email verification",
-    //   text: `Zur Verifizierung der email bitte zu folgender email gehen:http://localhost:${process.env.PORT}/users/verify/${token} `,
-    //   html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Verifiziere deine Email</a></p>`,
-    // };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const token = jwt.sign(
+      {
+        email: createdUser.email,
+        _id: createdUser._id,
+      },
+      process.env.SECRET_JWT,
+      {
+        expiresIn: "1h",
+      }
+    );
+    console.log(token);
+    const msg = {
+      to: createdUser.email, // Change to your recipient
+      from: "amnaelsayed2@gmail.com", // Change to your verified sender
+      subject: "Email verification",
+      text: `Zur Verifizierung der email bitte zu folgender email gehen:http://localhost:${process.env.PORT}/users/verify/${token} `,
+      html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/${token}">Verifiziere deine Email</a></p>`,
+    };
 
     // const token = jwt.sign(
     //   {
@@ -54,7 +54,7 @@ const register = async (req, res) => {
     //     expiresIn: "1h",
     //   }
     // );
-    // const response = await sgMail.send(msg);
+    const response = await sgMail.send(msg);
 
     console.log("response von sendgrid", createdUser);
     res.status(201).json(createdUser);
@@ -71,7 +71,8 @@ const verifyEmail = async (req, res) => {
     await User.findByIdAndUpdate(id, {
       isVerified: true,
     });
-    res.send({ message: "email verifiziert" });
+    // res.send({ message: "email verifiziert" });
+    res.redirect("http://localhost:3000/");
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: error.message });
@@ -87,8 +88,8 @@ const verifyPassword = async (req, res) => {
       isVerified: true,
     });
     // res.status(200).send("verified")
-   res.redirect("http://localhost:3000/users/setPassword");
-} catch (error) {
+    res.redirect("http://localhost:3000/users/setPassword");
+  } catch (error) {
     console.log(error);
     res.status(500).send({ message: error.message });
   }
@@ -106,13 +107,13 @@ const login = async (req, res, next) => {
     const setToOnline = await User.findByIdAndUpdate(findUser.id, {
       isOnline: true,
     });
-console.log(setToOnline.password);
-console.log(userInput.password);
+    console.log(setToOnline.password);
+    console.log(userInput.password);
     const pass = userInput.password;
 
     const vergleich = await bcrypt.compare(pass, setToOnline.password);
     console.log(!vergleich);
-    if (vergleich) {
+    if (!vergleich) {
       const error = new Error("password wrong error");
       error.statusCode = 401;
       throw error;
@@ -138,7 +139,7 @@ console.log(userInput.password);
         _id: findUser._id,
         token: token,
       });
-      console.log(response.ok);
+    console.log(response.ok);
   } catch (err) {
     next(err);
   }
@@ -240,7 +241,7 @@ const resetPassword = async (req, res) => {
         email: findUser.email,
         isVerified: findUser.isVerified,
       });
-      console.log(einTag);
+    console.log(einTag);
   } catch (err) {
     console.log(err);
   }
