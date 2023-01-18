@@ -1,8 +1,10 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import User from "../models/userModel.js";
 import sgMail from "@sendgrid/mail";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { format } from "timeago.js";
 
 // let dd = String(new Date().getDate()).padStart(2, "0");
 // let mm = String(new Date().getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -40,8 +42,12 @@ const register = async (req, res) => {
       profilePicture: profilePicture,
       isOnline: false,
     });
+console.log(createdUser);
+
 
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+
     const token = jwt.sign(
       {
         email: createdUser.email,
@@ -52,6 +58,7 @@ const register = async (req, res) => {
         expiresIn: "1h",
       }
     );
+    console.log(token);
     const msg = {
       to: createdUser.email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
@@ -72,7 +79,7 @@ const register = async (req, res) => {
     // );
     const response = await sgMail.send(msg);
 
-    console.log("response von sendgrid", createdUser);
+    console.log("response von sendgrid", response);
     res.status(201).json(createdUser);
   } catch (error) {
     res.status(401).send({ error: error.message });
@@ -110,7 +117,7 @@ const verifyPassword = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   try {
     const userInput = req.body;
     const findUser = await User.findOne({ email: userInput.email });
@@ -123,16 +130,16 @@ const login = async (req, res, next) => {
     const setToOnline = await User.findByIdAndUpdate(findUser._id, {
       isOnline: true,
     });
-    console.log(setToOnline.password);
-    console.log(userInput.password);
+    console.log("setToOnlie",setToOnline.password);
+    console.log("user input",userInput.password);
     // const pass = userInput.password;
 
     const compare = await bcrypt.compare(
       userInput.password,
-      setToOnline.password
+      findUser.password
     );
     console.log(compare);
-    if (compare) {
+    if (!compare) {
       const error = new Error("password wrong error");
       error.statusCode = 401;
       throw error;
@@ -159,7 +166,7 @@ const login = async (req, res, next) => {
         token: token,
       });
   } catch (err) {
-    next(err);
+    console.log({err: err.message });
   }
 };
 
@@ -266,7 +273,7 @@ const resetPassword = async (req, res) => {
 };
 const updatePassword = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email } = req.user;
     const { password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);

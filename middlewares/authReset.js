@@ -9,7 +9,7 @@ const authReset = async (req, res, next) => {
       process.env.SECRET_JWT || "thisisoursecretjsonwebtoken"
     );
     // console.log(tokenDecoded._id);
-    req.body = await User.findById(tokenDecoded._id);
+    req.user = await User.findById(tokenDecoded._id);
     // const { userName } = tokenDecoded;
     // res.send({
     //   message: "Inhalt nur für eingeloggten User",
