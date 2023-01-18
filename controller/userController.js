@@ -2,17 +2,32 @@ import User from "../models/userModel.js";
 import sgMail from "@sendgrid/mail";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { format } from "timeago.js";
 
+// let dd = String(new Date().getDate()).padStart(2, "0");
+// let mm = String(new Date().getMonth() + 1).padStart(2, "0"); //January is 0!
+// let yyyy = new Date().getFullYear();
+// let hh = new Date().getHours();
+// let min = new Date().getMinutes();
+// let sec = new Date().getSeconds();
+
+// let now = sec + "/" + min + "/" + hh + "/" + dd + "/" + mm + "/" + yyyy;
+// const dateNow = new Date(now).toJSON();
+// console.log(dateNow);
+// import TimeAgo from 'javascript-time-ago'
+// import en from 'javascript-time-ago/locale/en'
+// TimeAgo.addDefaultLocale(en)
+// const timeAgo = new TimeAgo('en-US')
 const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
-
+// const SENDGRID_API_KEY= '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'
 // controller für zurücksetzen des passwortes
 
 const register = async (req, res) => {
   try {
     const newUser = req.body;
-    console.log(newUser);
+    const profilePicture = req.file.path;
     const findExists = await User.findOne({ email: newUser.email });
-    console.log(findExists);
+
     if (findExists) {
       const error = new Error("Duplicated Email");
       error.statusCode = 401;
@@ -22,6 +37,8 @@ const register = async (req, res) => {
     const createdUser = await User.create({
       ...newUser,
       password: hashedPassword,
+      profilePicture: profilePicture,
+      isOnline: false,
     });
 
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -35,7 +52,6 @@ const register = async (req, res) => {
         expiresIn: "1h",
       }
     );
-    console.log(token);
     const msg = {
       to: createdUser.email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
@@ -104,16 +120,19 @@ const login = async (req, res, next) => {
       throw error;
     }
 
-    const setToOnline = await User.findByIdAndUpdate(findUser.id, {
+    const setToOnline = await User.findByIdAndUpdate(findUser._id, {
       isOnline: true,
     });
     console.log(setToOnline.password);
     console.log(userInput.password);
-    const pass = userInput.password;
+    // const pass = userInput.password;
 
-    const vergleich = await bcrypt.compare(pass, setToOnline.password);
-    console.log(!vergleich);
-    if (!vergleich) {
+    const compare = await bcrypt.compare(
+      userInput.password,
+      setToOnline.password
+    );
+    console.log(compare);
+    if (compare) {
       const error = new Error("password wrong error");
       error.statusCode = 401;
       throw error;
@@ -139,7 +158,6 @@ const login = async (req, res, next) => {
         _id: findUser._id,
         token: token,
       });
-    console.log(response.ok);
   } catch (err) {
     next(err);
   }
@@ -153,8 +171,8 @@ const getUsers = async (req, res) => {
       error.statusCode = 401;
       throw error;
     }
-    // console.log(users);
-    res.status(200).send(users);
+    console.log(users);
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -195,7 +213,7 @@ const resetPassword = async (req, res) => {
     console.log("test");
     const findUser = await User.findOne({ email: email });
     console.log(findUser);
-    console.log(findUser._id);
+    // console.log(findUser._id);
     // console.log(id);
     const id = findUser._id.toHexString();
 
@@ -285,9 +303,12 @@ const logout = async (req, res) => {
       id,
       {
         isOnline: false,
+        lastSeen: new Date().toJSON(),
       },
       { new: true }
     );
+   
+    console.log(new Date().toJSON());
 
     res.clearCookie("loginCookie");
 

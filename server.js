@@ -27,6 +27,7 @@ app.use(
 app.use(morgan("dev"));
 app.use(cookieParser());
 
+app.use("/uploads", express.static("uploads"));
 app.use("/users", userRouter);
 app.use("/chats", chatRoute);
 app.use("/messages", messageRoute);

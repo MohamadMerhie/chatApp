@@ -19,9 +19,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    profilePicture: { type: String },
     isAdmin: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
+    lastSeen: { type: String },
   },
   {
     toObject: { virtuals: true },
