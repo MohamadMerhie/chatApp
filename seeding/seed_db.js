@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 // import { faker } from "@faker-js/faker";
 import { faker } from "@faker-js/faker/locale/de";
 import User from "../models/userModel.js";
-const URI = process.env.MONGO_DB;
+const URI = process.env.MONGO_DB || "mongodb://localhost:27017";
 mongoose
   .connect(URI)
   .then(() => console.log(`Mit MongoDB verbunden`, URI))

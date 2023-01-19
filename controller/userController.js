@@ -20,7 +20,7 @@ import jwt from "jsonwebtoken";
 // import en from 'javascript-time-ago/locale/en'
 // TimeAgo.addDefaultLocale(en)
 // const timeAgo = new TimeAgo('en-US')
-const SECRET_JWT = process.env.SECRET_JWT || 1234567890;
+const SECRET_JWT = process.env.SECRET_JWT || "thisisoursecretjsonwebtoken"
 // const SENDGRID_API_KEY= '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'
 // controller für zurücksetzen des passwortes
 
@@ -53,7 +53,7 @@ console.log(createdUser);
         email: createdUser.email,
         _id: createdUser._id,
       },
-      process.env.SECRET_JWT,
+      SECRET_JWT,
       {
         expiresIn: "1h",
       }
@@ -88,7 +88,7 @@ console.log(createdUser);
 const verifyEmail = async (req, res) => {
   try {
     const token = req.params.token;
-    const decodedToken = jwt.verify(token, process.env.SECRET_JWT);
+    const decodedToken = jwt.verify(token,SECRET_JWT);
     console.log(decodedToken);
     const id = decodedToken._id;
     await User.findByIdAndUpdate(id, {
@@ -104,7 +104,7 @@ const verifyEmail = async (req, res) => {
 const verifyPassword = async (req, res) => {
   try {
     const token = req.params.token;
-    const decodedToken = jwt.verify(token, process.env.SECRET_JWT);
+    const decodedToken = jwt.verify(token,SECRET_JWT);
     console.log(decodedToken);
     const id = decodedToken._id;
     await User.findByIdAndUpdate(id, {
@@ -150,7 +150,7 @@ const login = async (req, res) => {
         email: findUser.email,
         userId: findUser._id,
       },
-      process.env.SECRET_JWT || "thisisoursecretjsonwebtoken",
+      SECRET_JWT,
       { expiresIn: "1d" }
     );
     const einTag = 1000 * 60 * 60 * 24;
