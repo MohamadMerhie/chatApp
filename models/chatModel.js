@@ -1,7 +1,8 @@
 import mongoose, { Schema, model } from "mongoose";
 
-const ChatSchema = new Schema({
-  members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+const ChatSchema = new Schema(
+  {
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
     chatName: { type: String, trim: true },
     isGroupChat: { type: Boolean, default: false },

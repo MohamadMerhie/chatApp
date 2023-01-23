@@ -6,23 +6,7 @@ import sgMail from "@sendgrid/mail";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// let dd = String(new Date().getDate()).padStart(2, "0");
-// let mm = String(new Date().getMonth() + 1).padStart(2, "0"); //January is 0!
-// let yyyy = new Date().getFullYear();
-// let hh = new Date().getHours();
-// let min = new Date().getMinutes();
-// let sec = new Date().getSeconds();
-
-// let now = sec + "/" + min + "/" + hh + "/" + dd + "/" + mm + "/" + yyyy;
-// const dateNow = new Date(now).toJSON();
-// console.log(dateNow);
-// import TimeAgo from 'javascript-time-ago'
-// import en from 'javascript-time-ago/locale/en'
-// TimeAgo.addDefaultLocale(en)
-// const timeAgo = new TimeAgo('en-US')
-const SECRET_JWT = process.env.SECRET_JWT || "thisisoursecretjsonwebtoken"
-// const SENDGRID_API_KEY= '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'
-// controller für zurücksetzen des passwortes
+const SECRET_JWT = process.env.SECRET_JWT || "thisisoursecretjsonwebtoken";
 
 const register = async (req, res) => {
   try {
@@ -42,11 +26,8 @@ const register = async (req, res) => {
       profilePicture: profilePicture,
       isOnline: false,
     });
-console.log(createdUser);
-
 
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 
     const token = jwt.sign(
       {
@@ -58,7 +39,6 @@ console.log(createdUser);
         expiresIn: "1h",
       }
     );
-    console.log(token);
     const msg = {
       to: createdUser.email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
@@ -88,13 +68,11 @@ console.log(createdUser);
 const verifyEmail = async (req, res) => {
   try {
     const token = req.params.token;
-    const decodedToken = jwt.verify(token,SECRET_JWT);
-    console.log(decodedToken);
+    const decodedToken = jwt.verify(token, SECRET_JWT);
     const id = decodedToken._id;
     await User.findByIdAndUpdate(id, {
       isVerified: true,
     });
-    // res.send({ message: "email verifiziert" });
     res.redirect("http://localhost:3000/");
   } catch (error) {
     console.log(error);
@@ -104,13 +82,11 @@ const verifyEmail = async (req, res) => {
 const verifyPassword = async (req, res) => {
   try {
     const token = req.params.token;
-    const decodedToken = jwt.verify(token,SECRET_JWT);
-    console.log(decodedToken);
+    const decodedToken = jwt.verify(token, SECRET_JWT);
     const id = decodedToken._id;
     await User.findByIdAndUpdate(id, {
       isVerified: true,
     });
-    // res.status(200).send("verified")
     res.redirect("http://localhost:3000/users/setPassword");
   } catch (error) {
     console.log(error);
@@ -127,18 +103,7 @@ const login = async (req, res) => {
       throw error;
     }
 
-    const setToOnline = await User.findByIdAndUpdate(findUser._id, {
-      isOnline: true,
-    });
-    console.log("setToOnlie",setToOnline.password);
-    console.log("user input",userInput.password);
-    // const pass = userInput.password;
-
-    const compare = await bcrypt.compare(
-      userInput.password,
-      findUser.password
-    );
-    console.log(compare);
+    const compare = await bcrypt.compare(userInput.password, findUser.password);
     if (!compare) {
       const error = new Error("password wrong error");
       error.statusCode = 401;
@@ -166,7 +131,7 @@ const login = async (req, res) => {
         token: token,
       });
   } catch (err) {
-    console.log({err: err.message });
+    console.log({ err: err.message });
   }
 };
 
@@ -178,7 +143,6 @@ const getUsers = async (req, res) => {
       error.statusCode = 401;
       throw error;
     }
-    console.log(users);
     res.status(200).json(users);
   } catch (error) {
     res.status(500).send({ message: error.message });
@@ -202,7 +166,6 @@ const searchForNewChat = async (req, res) => {
 const getChats = async (req, res) => {
   try {
     const users = await User.find({ _id: req.params.id });
-    // console.log(users);
     if (!users) {
       const error = new Error("no users found");
       error.statusCode = 401;
@@ -217,11 +180,7 @@ const getChats = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("test");
     const findUser = await User.findOne({ email: email });
-    console.log(findUser);
-    // console.log(findUser._id);
-    // console.log(id);
     const id = findUser._id.toHexString();
 
     await User.findByIdAndUpdate(
@@ -240,7 +199,6 @@ const resetPassword = async (req, res) => {
         expiresIn: "1h",
       }
     );
-    console.log(token);
     const msg = {
       to: email, // Change to your recipient
       from: "amnaelsayed2@gmail.com", // Change to your verified sender
@@ -249,7 +207,6 @@ const resetPassword = async (req, res) => {
       html: `<p><a href="http://localhost:${process.env.PORT}/users/verify/password/${token}">Reset Password</a></p>`,
     };
     const response = await sgMail.send(msg);
-    console.log(response);
     const einTag = 1000 * 60 * 60 * 24;
     res
       .cookie("resetCookie", token, {
@@ -265,6 +222,7 @@ const resetPassword = async (req, res) => {
         token: token,
         email: findUser.email,
         isVerified: findUser.isVerified,
+        isOnline: true,
       });
     console.log(einTag);
   } catch (err) {
@@ -308,18 +266,14 @@ const logout = async (req, res) => {
     const id = req.body.id;
     const updateUser = await User.findByIdAndUpdate(
       id,
-      {
-        isOnline: false,
-        lastSeen: new Date().toJSON(),
-      },
+      { updatedAt: Date.now() },
       { new: true }
     );
-   
-    console.log(new Date().toJSON());
 
+    console.log(updateUser);
     res.clearCookie("loginCookie");
 
-    res.send({ msg: "logging you out" });
+    res.send(updateUser);
   } catch (error) {
     console.log({ error: error.message });
     res.json({ msg: "no user to log out!" });

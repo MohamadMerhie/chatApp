@@ -21,14 +21,13 @@ const userSchema = new Schema(
     },
     profilePicture: { type: String },
     isAdmin: { type: Boolean, default: false },
-    isVerified: { type: Boolean, default: false },
-    isOnline: { type: Boolean, default: false },
-    lastSeen: { type: String },
+    isVerified: { type: Boolean, default: false }
   },
   {
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
-  }
+  },
+  { timestamps: true }
 );
 
 userSchema.virtual("fullName").get(function () {
